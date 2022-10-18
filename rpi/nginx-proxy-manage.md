@@ -2,16 +2,17 @@
 
 Install [docker](docker.md)
 
-```sh
+```
 mkdir -p ~/nginx/data
 mkdir -p ~/nginx/letsencrypt
 ```
 
-```sh
+```
 vim nginx docker-compose.yml
 ```
 
-```yml, ~/nginx/docker-compose.yml
+{% code title="~/nginx/docker-compose.yml" overflow="wrap" lineNumbers="true" %}
+```yaml
 version: "3"
 services:
   app:
@@ -38,18 +39,19 @@ services:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
 ```
+{% endcode %}
 
 ## Fail2ban
 
 ### Install
 
-```sh
+```
 sudo apt install fail2ban
 ```
 
 ### Configuration
 
-```sh, /etc/fail2ban/filter.d/nginx-http-proxy.conf
+```
 [INCLUDES]
 
 [Definition]
@@ -58,7 +60,7 @@ failregex = ^<HOST>.+" (4\d\d|3\d\d) (\d\d\d|\d) .+$
             ^.+ 4\d\d \d\d\d - .+ \[Client <HOST>\] \[Length .+\] ".+" .+$
 ```
 
-```sh, /etc/fail2ban/action.d/nginx-http-proxy.conf
+```
 [Definition]
 
 actionban = iptables -I DOCKER-USER -m string --algo bm --string 'X-Forwarded-For: <ip>' -j DROP
@@ -66,7 +68,7 @@ actionban = iptables -I DOCKER-USER -m string --algo bm --string 'X-Forwarded-Fo
 actionunban = iptables -D DOCKER-USER -m string --algo bm --string 'X-Forwarded-For: <ip>' -j DROP
 ```
 
-```sh, /etc/fail2ban/jail.local
+```
 [nginx-http-proxy]
 enabled = true
 port = http,https
@@ -80,18 +82,18 @@ action = nginx-http-proxy
 
 ### Restart fail2ban service
 
-```sh
+```
 sudo service fail2ban restart
 ```
 
 ### Check jail status for specific `filter.d`
 
-```sh
+```
 sudo fail2ban-client status nginx-http-proxy
 ```
 
 ### Unban IP
 
-```sh
+```
 sudo fail2ban-client set nginx-http-proxy unbanip <IP>
 ```
